@@ -115,6 +115,7 @@ int main(int argc, char** argv)
 
 		findContours(subs, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE, Point());
 		
+
 		size_t indexOfBiggestContour = -1;
 		size_t sizeOfBiggestContour = 0;
 
@@ -129,6 +130,7 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+		drawContours(small_frame, contours, indexOfBiggestContour, cv::Scalar(255, 0, 0), 2, 8, vector<Vec4i>(), 0, Point());
 
 		vector<vector<int> >hull(contours.size());
 		vector<vector<Point> >hullPoint(contours.size());
