@@ -104,7 +104,9 @@ int main(int argc, char** argv)
                 // mostramos el resultado del reconocimento de gestos
 		int count;
 		char a[40];
-
+		Mat element = getStructuringElement(MORPH_RECT, Size(2 * 5 + 1, 2 * 5 + 1), Point(5, 5));
+		dilate(subs, subs, element);
+		erode(subs, subs, element);
 
 		///////////////////////////////CODIGO TEMPORAL/////////////////////////////
 		vector<vector<Point>> contours;
