@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 	//Abrimos la webcam
 
 	VideoCapture cap;
-	cap.open(1);
+	cap.open(0);
 	if (!cap.isOpened())
 	{
 		printf("\nNo se puede abrir la cámara\n");
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 		cvtColor(diff, diff, COLOR_BGR2GRAY);
 		//fastNlMeansDenoising(diff, diff, 10, 7, 21);
 		//GaussianBlur(diff,diff,Size(3,3),0);
-		medianBlur(diff, diff, 9);
+		medianBlur(diff, diff, 7);
 		threshold(diff, diff, 10, 255,THRESH_BINARY);
 
 		
@@ -104,7 +104,8 @@ int main(int argc, char** argv)
                 // mostramos el resultado del reconocimento de gestos
 		int count;
 		char a[40];
-		Mat element = getStructuringElement(MORPH_RECT, Size(2 * 5 + 1, 2 * 5 + 1), Point(5, 5));
+		
+		Mat element = getStructuringElement(MORPH_RECT, Size(2 * 4 + 1, 2 * 4 + 1), Point(4, 4));
 		dilate(subs, subs, element);
 		erode(subs, subs, element);
 
