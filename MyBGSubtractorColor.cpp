@@ -1,6 +1,4 @@
-#include "pch.h"
 #include "MyBGSubtractorColor.hpp"
-
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
@@ -134,6 +132,7 @@ void  MyBGSubtractorColor::ObtainBGMask(cv::Mat frame, cv::Mat &bgmask) {
 	Mat temp;
 	Mat hls_frame;//no se si se pasa el frame convertido o no, asumimos la negativa
 	cvtColor(frame, hls_frame, COLOR_BGR2HLS);
+	//para el commit
 
 	//lugar original del codigo 1.2
 	for (int i = 0; i < max_samples; i++) {
