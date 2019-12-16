@@ -13,7 +13,7 @@ using namespace cv;
 using namespace std;
 
 HandGesture::HandGesture() {
-	
+	last_center = Point(0, 0);
 }
 
 
@@ -34,13 +34,11 @@ double HandGesture::getAngle(Point s, Point e, Point f) {
 	if (angle < -CV_PI) angle += 2 * CV_PI;
 	return (angle * 180.0/CV_PI);
 }
-void HandGesture::FeaturesDetection(Mat small_frame, Mat subs, Mat frame) {
+void HandGesture::FeaturesDetection(Mat small_frame, Mat subs) {
 	int count;
 	char a[40];
 
-	Mat element = getStructuringElement(MORPH_RECT, Size(2 * 4 + 1, 2 * 4 + 1), Point(4, 4));
-	dilate(subs, subs, element);
-	erode(subs, subs, element);
+	
 
 	///////////////////////////////CODIGO TEMPORAL/////////////////////////////
 	vector<vector<Point>> contours;
@@ -88,12 +86,17 @@ void HandGesture::FeaturesDetection(Mat small_frame, Mat subs, Mat frame) {
 				}
 				count = 0;
 				Rect bounding_rect = boundingRect(Mat(hullPoint[i]));
+				Point differ = Point(0, 0);
+				
+
 				for (size_t k = 0; k < defects[i].size(); k++) {
-					if (defects[i][k][3] > bounding_rect.height * 256 * 0.25 && defects[i][k][3] < bounding_rect.height * 256*0.8) {
+					if (defects[i][k][3] > bounding_rect.width * 256 * 0.15 && defects[i][k][3] < bounding_rect.width * 256*0.8) {
 						/*   int p_start=defects[i][k][0];   */
 						int p_end = defects[i][k][1];
 						int p_far = defects[i][k][2];
-						defectPoint[i].push_back(contours[i][p_far]);
+						defectPoint[i].push_back(contours[i][p_end]);
+						
+						//circle(small_frame, contours[i][p_far], 3, Scalar(0, 255, 0), 2);
 						circle(small_frame, contours[i][p_end], 3, Scalar(0, 255, 0), 2);
 						count++;
 					}
@@ -102,8 +105,19 @@ void HandGesture::FeaturesDetection(Mat small_frame, Mat subs, Mat frame) {
 				if (count == 1)
 					strcpy_s(a, "ONE");
 
-				else if (count == 2)
-					strcpy_s(a, "TWO");
+				else if (count == 2) {
+					//diferente dependiendo de la distancia entre esos dos puntos
+					differ = defectPoint[i][0] - defectPoint[i][1];
+					double distance = sqrt(differ.ddot(differ));
+
+					if (distance < bounding_rect.height / 2.5) {
+						strcpy_s(a, "peace");
+					}
+					else {
+						strcpy_s(a, "ROCK!!");
+					}
+
+				}
 				else if (count == 3)
 					strcpy_s(a, "THREE");
 				else if (count == 4)
@@ -111,9 +125,29 @@ void HandGesture::FeaturesDetection(Mat small_frame, Mat subs, Mat frame) {
 				else if (count == 5)
 					strcpy_s(a, "FIVE");
 				else
-					strcpy_s(a, "Welcome !!");
+					strcpy_s(a, "FIST");
 
-				putText(frame, a, Point(70, 70), FONT_HERSHEY_SIMPLEX, 3, Scalar(255, 0, 0), 2, 8, false);
+				Point centro = Point(bounding_rect.tl().x + (bounding_rect.br().x-bounding_rect.tl().x) / 2, bounding_rect.br().y + (bounding_rect.tl().y- bounding_rect.br().y) / 2);
+				circle(small_frame, centro, 3, Scalar(255, 0, 0), 2);
+
+				if (centro.x < (last_center.x - 10)) {
+					putText(small_frame, "Izquierda", Point(70, 80), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8, false);
+				}
+				else if (centro.x > (last_center.x + 10)) {
+					putText(small_frame, "Derecha", Point(70, 80), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8, false);
+				}
+
+				if (centro.y < (last_center.y - 10)) {
+
+					putText(small_frame, "Arriba", Point(70, 110), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8, false);
+				}
+				else if (centro.y > (last_center.y + 10)) {
+					putText(small_frame, "Abajo", Point(70, 110), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8, false);
+				}
+
+				last_center = centro;
+
+				putText(small_frame, a, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1.5, Scalar(255, 0, 0), 2, 8, false);
 				drawContours(subs, contours, i, Scalar(255, 255, 0), 2, 8, vector<Vec4i>(), 0, Point());
 				drawContours(subs, hullPoint, i, Scalar(255, 255, 0), 1, 8, vector<Vec4i>(), 0, Point());
 				drawContours(small_frame, hullPoint, i, Scalar(0, 0, 255), 2, 8, vector<Vec4i>(), 0, Point());
@@ -131,7 +165,7 @@ void HandGesture::FeaturesDetection(Mat small_frame, Mat subs, Mat frame) {
 	}
 }
 
-void print_with_finger(Mat small_frame, Mat subs, Mat frame) {
+void print_with_finger(Mat small_frame, Mat subs) {
 
 }
 	

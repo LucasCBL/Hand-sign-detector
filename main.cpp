@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	//Abrimos la webcam
 
 	VideoCapture cap;
-	cap.open(0);
+	cap.open(1);
 	if (!cap.isOpened())
 	{
 		printf("\nNo se puede abrir la cámara\n");
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 
 	namedWindow("Reconocimiento");
 	//namedWindow("Fondo");
-	namedWindow("Origen");
+	//namedWindow("Origen");
 	namedWindow("Fondo, Diferencia");
 
     // creamos el objeto para la substracción de fondo
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 	// iniciamos el proceso de obtención del modelo del fondo
 	filtro.LearnModel();
 	filtro.ObtainBG(bg);
-	bg = bg(Rect(bg.cols / 2, bg.rows / 2, bg.cols / 2, bg.rows / 2));
+	bg = bg(Rect(bg.cols*0.5 / 3, bg.rows *0.5/ 3, bg.cols *2/ 3, bg.rows *2/ 3));
 	bool ex = false;
 	HandGesture hand;
 	while(!ex)
@@ -74,37 +74,47 @@ int main(int argc, char** argv)
 			break;
 			ex = true;
 		} 
-		Mat small_frame = frame(Rect(frame.cols / 2, frame.rows / 2, frame.cols / 2, frame.rows / 2));
+		Mat small_frame = frame(Rect(frame.cols *0.5/ 3, frame.rows *0.5/ 3, frame.cols *2/ 3, frame.rows*2 / 3));
+
+		//elemento para posteriores eliminaciones de ruido
+		Mat element = getStructuringElement(MORPH_RECT, Size(2 * 4 + 1, 2 * 4 + 1), Point(4, 4));
+
 		// obtenemos la máscara del fondo con el frame actual
-		filtro.ObtainBGMask(small_frame,bgmask);
-                // CODIGO 2.1
-                // limpiar la máscara del fondo de ruido
-                //...
+		filtro.ObtainBGMask(small_frame,bgmask);      
 		medianBlur(bgmask,bgmask,7);
+		dilate(bgmask, bgmask, element);
+		erode(bgmask, bgmask, element);
 
-
-		// deteccion de las características de la mano
-
-                // mostramos el resultado de la sobstracción de fondo
-		//void bitwise_and(InputArray src1, InputArray src2, OutputArray dst, InputArray mask = noArray())
+		//SUBSTACCION DE FONDO
+        // mostramos el resultado de la sobstracción de fondo
 		absdiff(bg,small_frame,diff);
 		cvtColor(diff, diff, COLOR_BGR2GRAY);
-		//fastNlMeansDenoising(diff, diff, 10, 7, 21);
-		//GaussianBlur(diff,diff,Size(3,3),0);
+
 		medianBlur(diff, diff, 7);
 		threshold(diff, diff, 10, 255,THRESH_BINARY);
 
 		
-
+		// and de las dos máscaras
 		bitwise_and(bgmask, diff, subs);
+		dilate(subs, subs, element);
+		erode(subs, subs, element);
+
+
+		char colortitle[] = "Filtrado por colores";
+		char difftitle[] = "Filtrado por diferencia en fondo";
+		char andtitle[] = "Combinacion and de ambos filtrados";
+		putText(bgmask, colortitle, Point(10, 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 0, 0), 2, 8, false);
+		putText(diff, difftitle, Point(10, 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 0, 0), 2, 8, false);
+		putText(subs, andtitle, Point(10, 10), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 0, 0), 2, 8, false);
+
 		hconcat(vector<cv::Mat>{bgmask, diff, subs}, concat_image);
 		//hconcat(concat_image, subs);
 
 		//hconcat(std::vector<cv::Mat>{small_frame, bgmask}, Concatenated_image);
                 // mostramos el resultado del reconocimento de gestos
-		hand.FeaturesDetection(small_frame, subs, frame);
+		hand.FeaturesDetection(small_frame, subs);
 
-		imshow("Origen", frame);
+		//imshow("Origen", frame);
 		imshow("Reconocimiento", small_frame);
 		//imshow("Fondo", subs);
 		imshow("Fondo, Diferencia", concat_image);

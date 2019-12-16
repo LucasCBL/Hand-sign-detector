@@ -10,11 +10,12 @@
 #include <string>
 
 class HandGesture {
-
+private:
+	cv::Point last_center;//para comparar el mopvimiento del centro
 public:
 	HandGesture();
-	void FeaturesDetection(cv::Mat mask, cv::Mat subs, cv::Mat output_img);
-	void print_with_finger(cv::Mat, cv::Mat, cv::Mat);
+	void FeaturesDetection(cv::Mat mask, cv::Mat subs);
+	void print_with_finger(cv::Mat, cv::Mat);
 	
 
 private:
