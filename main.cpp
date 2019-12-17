@@ -18,14 +18,14 @@ using namespace cv;
 int main(int argc, char** argv)
 {
 
-	Mat frame, bgmask, out_frame, bg, diff,subs;
+	Mat frame,small_frame, bgmask, out_frame, bg, diff,subs;
 	
 	Mat concat_image;
 
 	//Abrimos la webcam
 
 	VideoCapture cap;
-	cap.open(1);
+	cap.open(0);
 	if (!cap.isOpened())
 	{
 		printf("\nNo se puede abrir la cámara\n");
@@ -48,6 +48,7 @@ int main(int argc, char** argv)
 	//namedWindow("Fondo");
 	//namedWindow("Origen");
 	namedWindow("Fondo, Diferencia");
+	namedWindow("Canvas");
 
     // creamos el objeto para la substracción de fondo
 	MyBGSubtractorColor filtro(cap);
@@ -58,6 +59,7 @@ int main(int argc, char** argv)
 	filtro.LearnModel();
 	filtro.ObtainBG(bg);
 	bg = bg(Rect(bg.cols*0.5 / 3, bg.rows *0.5/ 3, bg.cols *2/ 3, bg.rows *2/ 3));
+	Mat canvas(bg.rows, bg.cols , CV_8UC3, Scalar(0, 0, 0));
 	bool ex = false;
 	HandGesture hand;
 	while(!ex)
@@ -74,8 +76,8 @@ int main(int argc, char** argv)
 			break;
 			ex = true;
 		} 
-		Mat small_frame = frame(Rect(frame.cols *0.5/ 3, frame.rows *0.5/ 3, frame.cols *2/ 3, frame.rows*2 / 3));
-
+		small_frame = frame(Rect(frame.cols *0.5/ 3, frame.rows *0.5/ 3, frame.cols *2/ 3, frame.rows*2 / 3));
+		
 		//elemento para posteriores eliminaciones de ruido
 		Mat element = getStructuringElement(MORPH_RECT, Size(2 * 4 + 1, 2 * 4 + 1), Point(4, 4));
 
@@ -112,18 +114,22 @@ int main(int argc, char** argv)
 
 		//hconcat(std::vector<cv::Mat>{small_frame, bgmask}, Concatenated_image);
                 // mostramos el resultado del reconocimento de gestos
-		hand.FeaturesDetection(small_frame, subs);
-
+		Point pencil;
+		pencil=hand.FeaturesDetection(small_frame, subs);
+		if (pencil != Point(0, 0)) {
+			circle(canvas, pencil, 2, Scalar(255, 255, 255), 2);
+		}
 		//imshow("Origen", frame);
 		imshow("Reconocimiento", small_frame);
 		//imshow("Fondo", subs);
 		imshow("Fondo, Diferencia", concat_image);
-
+		imshow("Canvas",canvas );
 	}
 	
 	destroyWindow("Reconocimiento");
 	//destroyWindow("Fondo");
 	destroyWindow("Origen");
+	destroyWindow("Canvas");
 	destroyWindow("Fondo, Diferencia");
 	cap.release();
 	return 0;

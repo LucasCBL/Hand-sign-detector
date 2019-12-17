@@ -106,6 +106,7 @@ void MyBGSubtractorColor::LearnModel() {
 
 }
 
+
 void MyBGSubtractorColor::ObtainBG(cv::Mat &bg) {
 	Mat frame, tmp_frame;
 

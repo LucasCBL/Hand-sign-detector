@@ -34,10 +34,10 @@ double HandGesture::getAngle(Point s, Point e, Point f) {
 	if (angle < -CV_PI) angle += 2 * CV_PI;
 	return (angle * 180.0/CV_PI);
 }
-void HandGesture::FeaturesDetection(Mat small_frame, Mat subs) {
+cv::Point HandGesture::FeaturesDetection(Mat small_frame, Mat subs) {
 	int count;
 	char a[40];
-
+	cv::Point target = Point(0, 0);
 	
 
 	///////////////////////////////CODIGO TEMPORAL/////////////////////////////
@@ -102,8 +102,11 @@ void HandGesture::FeaturesDetection(Mat small_frame, Mat subs) {
 					}
 				}
 
-				if (count == 1)
+				if (count == 1) {
+					target = defectPoint[i][0];
 					strcpy_s(a, "ONE");
+				}
+					
 
 				else if (count == 2) {
 					//diferente dependiendo de la distancia entre esos dos puntos
@@ -112,6 +115,7 @@ void HandGesture::FeaturesDetection(Mat small_frame, Mat subs) {
 
 					if (distance < bounding_rect.height / 2.5) {
 						strcpy_s(a, "peace");
+
 					}
 					else {
 						strcpy_s(a, "ROCK!!");
@@ -136,7 +140,6 @@ void HandGesture::FeaturesDetection(Mat small_frame, Mat subs) {
 				else if (centro.x > (last_center.x + 10)) {
 					putText(small_frame, "Derecha", Point(70, 80), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8, false);
 				}
-
 				if (centro.y < (last_center.y - 10)) {
 
 					putText(small_frame, "Arriba", Point(70, 110), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 0, 0), 2, 8, false);
@@ -163,6 +166,7 @@ void HandGesture::FeaturesDetection(Mat small_frame, Mat subs) {
 		}
 
 	}
+	return target;
 }
 
 void print_with_finger(Mat small_frame, Mat subs) {
